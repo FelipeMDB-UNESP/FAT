@@ -14,7 +14,7 @@
 
 #define SIZE 1024
 
-// the superblock
+// o superbloco
 #define MAGIC_N           0xAC0010DE
 typedef struct{
 	int magic;
@@ -39,7 +39,7 @@ typedef struct{
 #define N_ITEMS (BLOCK_SIZE / sizeof(dir_item))
 dir_item dir[N_ITEMS];
 
-// table
+// tabela
 #define FREE 0
 #define EOFF 1
 #define BUSY 2
@@ -47,16 +47,57 @@ unsigned int *fat;
 
 int mountState = 0;
 
-int fat_format(){ 
+int fat_format(){
   	return 0;
 }
 
 void fat_debug(){
-	printf("depurando\n");
+	printf("\nSuperblock:\n");
+	printf("    magic is ");
+	if(sb.magic == MAGIC_N) {
+		printf("ok\n");
+	} else {
+		printf("not ok\n");
+	}
+	printf("    blocks:    %d\n",sb.number_blocks);
+	printf("    block fat: %d\n",sb.n_fat_blocks);
+
+	for(int i = 0; i < N_ITEMS; i++){
+		if(dir[i].used == OK) {
+			printf("\nFile \"%s\":\n", dir[i].name);
+			printf("    Size %u bytes\n", dir[i].length);
+			printf("	Blocks:");
+			unsigned int bloco = dir[i].first;
+			while(bloco != EOFF && bloco < sb.number_blocks) {
+				printf(" %u", bloco);
+				if(fat[bloco] == EOFF || fat[bloco] >= sb.number_blocks) {
+					break;
+				}
+				bloco = fat[bloco];
+			}
+			printf("\n");
+		}
+	}
 }
 
 int fat_mount(){
-  	return 0;
+
+	if(mountState) {
+		return -1;
+	}
+	ds_read(SUPER, (char*) &sb);
+	if(sb.magic == MAGIC_N) {
+
+		ds_read(DIR, (char*) dir);
+		fat = malloc(sb.n_fat_blocks * BLOCK_SIZE);
+		if(!fat){return - 1;}
+		for(int i = 0; i < sb.n_fat_blocks; i++){
+			ds_read(TABLE, ((char*) fat) + i * BLOCK_SIZE);
+		}
+		mountState = 1;
+  		return 0;
+	}
+	return -1;
 }
 
 int fat_create(char *name){

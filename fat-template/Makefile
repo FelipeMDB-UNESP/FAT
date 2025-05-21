@@ -20,3 +20,6 @@ img:
 
 ver:
 	hexdump -C nova-imagem | less
+
+clear:
+	rm -f *.o fat-sys
