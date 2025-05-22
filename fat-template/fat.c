@@ -99,7 +99,7 @@ void fat_debug(){
 	for(int i = 0; i < N_ITEMS; i++){
 		if(dir[i].used == OK) {
 			printf("\nFile \"%s\":\n", dir[i].name);
-			printf("    Size %u bytes\n", dir[i].length);
+			printf("	Size %u bytes\n", dir[i].length);
 			printf("	Blocks:");
 			unsigned int bloco = dir[i].first;
 			while(bloco != EOFF && bloco < sb.number_blocks) {
@@ -147,23 +147,117 @@ int fat_mount(){
 }
 
 int fat_create(char *name){
-  	return 0;
+	if(mountState == 0) {
+		return -1;
+	}
+
+	//Verifica se o nome do arquivo é válido
+	if(strlen(name) > MAX_LETTERS) {
+		return -1;
+	}
+
+	//Verifica se o arquivo já existe
+	for(int i = 0; i < N_ITEMS; i++){
+		if(dir[i].used == OK && strcasecmp(dir[i].name, name) == 0) {
+			return -1;
+		}
+	}
+
+	for(int i = 0; i < N_ITEMS; i++) {
+		if(dir[i].used == NON_OK) {
+			dir[i].used = OK;
+			strncpy(dir[i].name, name, MAX_LETTERS);
+			dir[i].length = 0;
+			dir[i].first = EOFF;
+
+			//Escreve o diretório na RAM
+			ds_write(DIR, (char*) dir);
+			break;
+		}
+	}
+	return 0;
 }
 
 int fat_delete( char *name){
-  	return 0;
+	if(mountState == 0) {
+		return -1;
+	}
+
+	//Verifica se o nome do arquivo é válido
+	if(strlen(name) > MAX_LETTERS) {
+		return -1;
+	}
+
+	//Verifica se o arquivo já existe
+	for(int i = 0; i < N_ITEMS; i++){
+		if(dir[i].used == OK && strcasecmp(dir[i].name, name) == 0) {
+
+			//deleta o arquivo
+			dir[i].used = NON_OK;
+			dir[i].length = 0;
+			strncpy(dir[i].name, "", MAX_LETTERS);
+
+			//Escreve o diretório na RAM
+			ds_write(DIR, (char*) dir);
+
+			//Libera os blocos ocupados pelo arquivo
+			unsigned int bloco = dir[i].first;
+			dir[i].first = EOFF;
+			while(bloco != EOFF && bloco < sb.number_blocks) {
+				unsigned int aux = bloco;
+				bloco = fat[bloco];
+				fat[aux] = FREE;
+			}
+			fat[bloco] = FREE;
+
+			//Escreve a FAT na RAM
+			for(int i = 0; i < sb.n_fat_blocks; i++){
+				ds_write(TABLE+i, ((char*) fat) + i * BLOCK_SIZE);
+			}
+			return 0;
+		}
+	}
+
+  	return -1;
 }
 
-int fat_getsize( char *name){ 
+int fat_getsize( char *name){
+	if(mountState == 0) {
+		return -1;
+	}
+
+	//Verifica se o nome do arquivo é válido
+	if(strlen(name) > MAX_LETTERS) {
+		return -1;
+	}
+
 	return 0;
 }
 
 //Retorna a quantidade de caracteres lidos
 int fat_read( char *name, char *buff, int length, int offset){
+	if(mountState == 0) {
+		return -1;
+	}
+
+	//Verifica se o nome do arquivo é válido
+	if(strlen(name) > MAX_LETTERS) {
+		return -1;
+	}
+
 	return 0;
 }
 
 //Retorna a quantidade de caracteres escritos
 int fat_write( char *name, const char *buff, int length, int offset){
+	if(mountState == 0) {
+		return -1;
+	}
+
+	//Verifica se o nome do arquivo é válido
+	if(strlen(name) > MAX_LETTERS) {
+		return -1;
+	}
+
 	return 0;
 }
