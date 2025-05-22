@@ -47,11 +47,44 @@ unsigned int *fat;
 
 int mountState = 0;
 
+//Formatação da FAT
 int fat_format(){
+	if(mountState == 1) {
+		return -1;
+	}
+
+	//Limpa Diretório
+	memset(dir, 0, sizeof(dir));
+	ds_write(DIR, (char*) dir);
+
+	ds_read(SUPER, (char*) &sb);
+	
+	//Limpa FAT
+	unsigned int *empty_fat = calloc(sb.n_fat_blocks * BLOCK_SIZE,sizeof(char));
+	for(int i = 0; i < sb.n_fat_blocks; i++){
+		ds_write(TABLE+i, ((char*) empty_fat) + i * BLOCK_SIZE);
+	}
+	free(empty_fat);
+
+	//Inicializa Superbloco
+	sb.magic = MAGIC_N;
+	sb.number_blocks = ds_size();
+
+	//Quantidade de blocos para a FAT com base na quantidade de blocos existentes no disco
+	sb.n_fat_blocks = (sb.number_blocks*sizeof(unsigned int)-1)/BLOCK_SIZE + 1;
+
+	ds_write(SUPER,(char*) &sb);
+
   	return 0;
 }
 
+//Depuração e checagem dos itens no Sistema de Arquivos
 void fat_debug(){
+
+	//Montagem da FAT caso não tenha sido feita antes
+	int temp = fat_mount();
+
+	//Listagem do Superbloco
 	printf("\nSuperblock:\n");
 	printf("    magic is ");
 	if(sb.magic == MAGIC_N) {
@@ -62,6 +95,7 @@ void fat_debug(){
 	printf("    blocks:    %d\n",sb.number_blocks);
 	printf("    block fat: %d\n",sb.n_fat_blocks);
 
+	//Listagem dos arquivos do diretório
 	for(int i = 0; i < N_ITEMS; i++){
 		if(dir[i].used == OK) {
 			printf("\nFile \"%s\":\n", dir[i].name);
@@ -78,21 +112,33 @@ void fat_debug(){
 			printf("\n");
 		}
 	}
+	
+	//Desmontagem da FAT caso tenha sido criada dentro desta função
+	if (!temp) {
+		free(fat);
+		mountState = 0;
+	}
 }
 
+//Montagem da FAT, do Diretório e do Superbloco na RAM
 int fat_mount(){
 
 	if(mountState) {
 		return -1;
 	}
+
+	//Leitura do Superbloco
 	ds_read(SUPER, (char*) &sb);
 	if(sb.magic == MAGIC_N) {
 
+		//Leitura do Diretório
 		ds_read(DIR, (char*) dir);
+
+		//Leitura da FAT
 		fat = malloc(sb.n_fat_blocks * BLOCK_SIZE);
 		if(!fat){return - 1;}
 		for(int i = 0; i < sb.n_fat_blocks; i++){
-			ds_read(TABLE, ((char*) fat) + i * BLOCK_SIZE);
+			ds_read(TABLE+i, ((char*) fat) + i * BLOCK_SIZE);
 		}
 		mountState = 1;
   		return 0;
