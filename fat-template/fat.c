@@ -305,27 +305,29 @@ int fat_write(char *name, const char *buff, int length, int offset) {
             int block_offset = offset % BLOCK_SIZE;
             int skip_blocks = offset / BLOCK_SIZE;
 
-            // Pula blocos já existentes até o offset
-            for (int j = 0; j < skip_blocks; j++) {
-                if (bloco == EOFF || bloco >= sb.number_blocks) break;
-                prev = bloco;
-                bloco = fat[bloco];
-            }
+			// Pula blocos já existentes até o offset
+			for (int j = 0; j < skip_blocks; j++) {
+				if (bloco == EOFF || bloco >= sb.number_blocks) break;
+				prev = bloco;
+				bloco = fat[bloco];
+			}
 
-            // Se offset aponta para o fim do arquivo, precisamos alocar o primeiro bloco
-            if (bloco == EOFF) {
-                // Aloca novo bloco
-                for (unsigned int k = 2 + sb.n_fat_blocks; k < sb.number_blocks; k++) {
-                    if (fat[k] == FREE) {
-                        fat[k] = EOFF;
-                        if (prev != EOFF) fat[prev] = k;
-                        else dir[i].first = k;
-                        bloco = k;
-                        break;
-                    }
-                }
-                if (bloco == EOFF) return bytes_write; // disco cheio
-            }
+			while (bloco == EOFF && skip_blocks-- >= 0) {
+				// Aloca novo bloco
+				unsigned int novo = EOFF;
+				for (unsigned int k = 2 + sb.n_fat_blocks; k < sb.number_blocks; k++) {
+					if (fat[k] == FREE) {
+						novo = k;
+						break;
+					}
+				}
+				if (novo == EOFF) return bytes_write; // disco cheio
+				fat[novo] = EOFF;
+				if (prev != EOFF && prev < sb.number_blocks) fat[prev] = novo;
+				else dir[i].first = novo;
+				prev = novo;
+				bloco = novo;
+			}
 
             char temp[BLOCK_SIZE];
             while (bytes_write < length && bloco != EOFF && bloco < sb.number_blocks) {
