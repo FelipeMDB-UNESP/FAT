@@ -231,7 +231,16 @@ int fat_getsize( char *name){
 		return -1;
 	}
 
-	return 0;
+	//Verifica se o arquivo existe
+	for(int i = 0; i < N_ITEMS; i++){
+		if(dir[i].used == OK && strcasecmp(dir[i].name, name) == 0) {
+
+			//Retorna o tamanho do arquivo
+			return dir[i].length;
+		}
+	}
+
+	return -1;
 }
 
 //Retorna a quantidade de caracteres lidos
