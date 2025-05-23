@@ -101,13 +101,13 @@ void fat_debug(){
 			printf("\nFile \"%s\":\n", dir[i].name);
 			printf("	Size %u bytes\n", dir[i].length);
 			printf("	Blocks:");
-			unsigned int bloco = dir[i].first;
-			while(bloco != EOFF && bloco < sb.number_blocks) {
-				printf(" %u", bloco);
-				if(fat[bloco] == EOFF || fat[bloco] >= sb.number_blocks) {
+			unsigned int block = dir[i].first;
+			while(block != EOFF && block < sb.number_blocks) {
+				printf(" %u", block);
+				if(fat[block] == EOFF || fat[block] >= sb.number_blocks) {
 					break;
 				}
-				bloco = fat[bloco];
+				block = fat[block];
 			}
 			printf("\n");
 		}
@@ -198,14 +198,14 @@ int fat_delete( char *name){
 			ds_write(DIR, (char*) dir);
 
 			//Libera os blocos ocupados pelo arquivo
-			unsigned int bloco = dir[i].first;
+			unsigned int block = dir[i].first;
 			dir[i].first = EOFF;
-			while(bloco != EOFF && bloco < sb.number_blocks) {
-				unsigned int aux = bloco;
-				bloco = fat[bloco];
+			while(block != EOFF && block < sb.number_blocks) {
+				unsigned int aux = block;
+				block = fat[block];
 				fat[aux] = FREE;
 			}
-			fat[bloco] = FREE;
+			fat[block] = FREE;
 
 			//Escreve a FAT na RAM
 			for(int i = 0; i < sb.n_fat_blocks; i++){
@@ -253,18 +253,18 @@ int fat_read(char *name, char *buff, int length, int offset) {
 			// Verifica se o tamanho do buffer é válido
             length = (length > dir[i].length - offset) ? dir[i].length - offset : length;
 
-            unsigned int bloco = dir[i].first;
+            unsigned int block = dir[i].first;
             int bytes_read = 0;
             int block_offset = offset % BLOCK_SIZE;
 
             // Pula os blocos iniciais por causa  do offset
-            for (int j = 0; j < offset / BLOCK_SIZE && bloco != EOFF && bloco < sb.number_blocks; j++) {
-                bloco = fat[bloco];
+            for (int j = 0; j < offset / BLOCK_SIZE && block != EOFF && block < sb.number_blocks; j++) {
+                block = fat[block];
             }
 
             char temp[BLOCK_SIZE];
-            while (bloco != EOFF && bloco < sb.number_blocks && bytes_read < length) {
-                ds_read(bloco, temp);
+            while (block != EOFF && block < sb.number_blocks && bytes_read < length) {
+                ds_read(block, temp);
 
                 int copy_bytes = BLOCK_SIZE - block_offset;
                 copy_bytes = (copy_bytes > length - bytes_read) ? length - bytes_read : copy_bytes;
@@ -272,7 +272,7 @@ int fat_read(char *name, char *buff, int length, int offset) {
                 memcpy(buff + bytes_read, temp + block_offset, copy_bytes);
                 bytes_read += copy_bytes;
                 block_offset = 0;
-                bloco = fat[bloco];
+                block = fat[block];
             }
             return bytes_read;
         }
@@ -299,7 +299,7 @@ int fat_write(char *name, const char *buff, int length, int offset) {
             }
             if (length == 0) return 0;
 
-            unsigned int bloco = dir[i].first;
+            unsigned int block = dir[i].first;
             unsigned int prev = EOFF;
             int bytes_write = 0;
             int block_offset = offset % BLOCK_SIZE;
@@ -307,42 +307,42 @@ int fat_write(char *name, const char *buff, int length, int offset) {
 
             // Pula blocos já existentes até o offset
             for (int j = 0; j < skip_blocks; j++) {
-                if (bloco == EOFF || bloco >= sb.number_blocks) break;
-                prev = bloco;
-                bloco = fat[bloco];
+                if (block == EOFF || block >= sb.number_blocks) break;
+                prev = block;
+                block = fat[block];
             }
 
             // Se offset aponta para o fim do arquivo, precisamos alocar o primeiro bloco
-            if (bloco == EOFF) {
+            if (block == EOFF) {
                 // Aloca novo bloco
                 for (unsigned int k = 2 + sb.n_fat_blocks; k < sb.number_blocks; k++) {
                     if (fat[k] == FREE) {
                         fat[k] = EOFF;
                         if (prev != EOFF) fat[prev] = k;
                         else dir[i].first = k;
-                        bloco = k;
+                        block = k;
                         break;
                     }
                 }
-                if (bloco == EOFF) return bytes_write; // disco cheio
+                if (block == EOFF) return bytes_write; // disco cheio
             }
 
             char temp[BLOCK_SIZE];
-            while (bytes_write < length && bloco != EOFF && bloco < sb.number_blocks) {
-                ds_read(bloco, temp);
+            while (bytes_write < length && block != EOFF && block < sb.number_blocks) {
+                ds_read(block, temp);
 
                 int copy_bytes = BLOCK_SIZE - block_offset;
                 if (copy_bytes > length - bytes_write)
                     copy_bytes = length - bytes_write;
 
                 memcpy(temp + block_offset, buff + bytes_write, copy_bytes);
-                ds_write(bloco, temp);
+                ds_write(block, temp);
                 bytes_write += copy_bytes;
                 block_offset = 0;
 
                 // Se ainda falta escrever, avança ou aloca novo bloco
                 if (bytes_write < length) {
-                    if (fat[bloco] == EOFF) {
+                    if (fat[block] == EOFF) {
                         // Aloca novo bloco
                         unsigned int novo = EOFF;
                         for (unsigned int k = 2 + sb.n_fat_blocks; k < sb.number_blocks; k++) {
@@ -352,10 +352,10 @@ int fat_write(char *name, const char *buff, int length, int offset) {
                             }
                         }
                         if (novo == EOFF) break; // disco cheio
-                        fat[bloco] = novo;
+                        fat[block] = novo;
                         fat[novo] = EOFF;
                     }
-                    bloco = fat[bloco];
+                    block = fat[block];
                 }
             }
 
