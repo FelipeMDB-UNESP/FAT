@@ -301,9 +301,10 @@ int fat_write(char *name, const char *buff, int length, int offset) {
             }
             if (length == 0) return 0;
 
+			//Se chegou aqui, há espaço para escrever algo
             unsigned int block = dir[i].first;
             unsigned int prev = EOFF;
-            int bytes_write = 0;
+            int bytes_written = 0;
             int block_offset = offset % BLOCK_SIZE;
             int skip_blocks = offset / BLOCK_SIZE;
 
@@ -320,8 +321,8 @@ int fat_write(char *name, const char *buff, int length, int offset) {
                 for (unsigned int k = 2 + sb.n_fat_blocks; k < sb.number_blocks; k++) {
                     if (fat[k] == FREE) {
                         fat[k] = EOFF;
-                        if (prev != EOFF) fat[prev] = k;
-                        else dir[i].first = k;
+                        if (prev != EOFF) {fat[prev] = k;}
+                        else {dir[i].first = k;}
                         block = k;
                         break;
                     }
@@ -330,20 +331,22 @@ int fat_write(char *name, const char *buff, int length, int offset) {
             }
 
             char temp[BLOCK_SIZE];
-            while (bytes_write < length && block != EOFF && block < sb.number_blocks) {
+            while (bytes_written < length && block != EOFF && block < sb.number_blocks) {
                 ds_read(block, temp);
 
-                int copy_bytes = BLOCK_SIZE - block_offset;
-                if (copy_bytes > length - bytes_write)
-                    copy_bytes = length - bytes_write;
+                int bytes_to_copy = BLOCK_SIZE - block_offset;
 
-                memcpy(temp + block_offset, buff + bytes_write, copy_bytes);
+				//Se tem mais bytes disponíveis no bloco do que tem para se copiar, define novo valor para a qtd de bytes a copiar 
+                if (bytes_to_copy > length - bytes_written)
+                    bytes_to_copy = length - bytes_written;
+
+                memcpy(temp + block_offset, buff + bytes_written, bytes_to_copy);
                 ds_write(block, temp);
-                bytes_write += copy_bytes;
+                bytes_written += bytes_to_copy;
                 block_offset = 0;
 
                 // Se ainda falta escrever, avança ou aloca novo bloco
-                if (bytes_write < length) {
+                if (bytes_written < length) {
                     if (fat[block] == EOFF) {
                         // Aloca novo bloco
                         unsigned int novo = EOFF;
@@ -362,8 +365,8 @@ int fat_write(char *name, const char *buff, int length, int offset) {
             }
 
             // Atualiza o tamanho do arquivo se necessário
-            if (offset + bytes_write > dir[i].length) {
-                dir[i].length = offset + bytes_write;
+            if (offset + bytes_written > dir[i].length) {
+                dir[i].length = offset + bytes_written;
             }
 
             // Atualiza diretório e FAT no disco
@@ -372,7 +375,7 @@ int fat_write(char *name, const char *buff, int length, int offset) {
                 ds_write(TABLE + j, ((char*)fat) + j * BLOCK_SIZE);
             }
 
-            return bytes_write;
+            return bytes_written;
         }
     }
     return -1;
