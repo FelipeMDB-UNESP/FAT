@@ -173,7 +173,7 @@ int main( int argc, char *argv[] )
 int cpin( char *name, char *op_path )
 {
 	FILE *file;
-	int offset=0, result, actual;
+	int offset=0, result, actual, sucess=1;
 	char buffer[16384];
 
 	file = fopen(name,"r");
@@ -188,21 +188,24 @@ int cpin( char *name, char *op_path )
 		if(result>0) {
 			actual = fat_write(op_path,buffer,result,offset);
 			if(actual<0) {
-				printf("ERRO: fat_write returnou codigo %d\n",actual);
+				printf("ERRO: fat_write retornou codigo %d\n",actual);
+				sucess=0;
 				break;
 			}
 			offset += actual;
 			if(actual!=result) {
 				printf("ATENCAO: fat_write escreveu apenas %d bytes, em vez de %d bytes\n",actual,result);
+				sucess=0;
 				break;
 			}
 		}
 	}
 
-	printf("copia de %d bytes\n",offset);
+	if (sucess)
+		printf("copia de %d bytes\n",offset);
 
 	fclose(file);
-	return 1;
+	return sucess;
 }
 
 int cpout( char *os_path, char *name )
