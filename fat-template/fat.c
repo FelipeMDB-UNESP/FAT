@@ -293,11 +293,11 @@ int fat_write(char *name, const char *buff, int length, int offset) {
             }
 
             // Calcula o tamanho máximo possível para escrita
-            int max_file_size = (sb.number_blocks - 2 - sb.n_fat_blocks) * BLOCK_SIZE; // espaço útil
-            if (offset + length > max_file_size) {
-                length = max_file_size - offset;
+            int bytes_available = (sb.number_blocks - 2 - sb.n_fat_blocks) * BLOCK_SIZE; // espaço útil
+            if (offset + length > bytes_available) {
+                length = bytes_available - offset;
             }
-            if (length <= 0) return 0;
+            if (length == 0) return 0;
 
             unsigned int bloco = dir[i].first;
             unsigned int prev = EOFF;
