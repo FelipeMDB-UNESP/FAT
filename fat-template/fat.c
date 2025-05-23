@@ -280,7 +280,7 @@ int fat_read(char *name, char *buff, int length, int offset) {
     return -1;
 }
 
-
+//Escrita de dados no arquivo do sistema
 int fat_write(char *name, const char *buff, int length, int offset) {
     if (mountState == 0 || strlen(name) > MAX_LETTERS || !buff || length <= 0 || offset < 0) {
         return -1;
@@ -374,4 +374,22 @@ int fat_write(char *name, const char *buff, int length, int offset) {
         }
     }
     return -1;
+}
+
+//Desmontagem da FAT, do Diretório e do Superbloco da RAM, salvando no disco.
+int fat_dismount() {
+
+	if (!mountState) {
+		return -1;
+	}
+
+	ds_write(SUPER, (char*) &sb);
+	ds_write(DIR, (char*)dir);
+	for (int j = 0; j < sb.n_fat_blocks; j++) {
+		ds_write(TABLE + j, ((char*)fat) + j * BLOCK_SIZE);
+	}
+	free(fat);
+
+	mountState=0;
+	return 0;
 }

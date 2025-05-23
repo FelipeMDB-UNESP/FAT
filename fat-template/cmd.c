@@ -60,6 +60,16 @@ int main( int argc, char *argv[] )
 			} else {
 				printf("uso: montar\n");
 			}
+		} else if(!(strcmp(cmd,"salvar"))) {
+			if(args==1) {
+				if(!fat_dismount()) {
+					printf("salvameto ok\n");
+				} else {
+					printf("falha no salvamento!\n");
+				}
+			} else {
+				printf("uso: salvar\n");
+			}
 		} else if(!strcmp(cmd,"depurar")) {
 			if(args==1) {
 				fat_debug();
@@ -134,6 +144,7 @@ int main( int argc, char *argv[] )
 			printf("Comandos:\n");
 			printf("    formatar\n");
 			printf("    montar\n");
+			printf("    salvar\n");
 			printf("    depurar\n");
 			printf("    criar	<arquivo>\n");
 			printf("    deletar <arquivo>\n");
@@ -144,6 +155,7 @@ int main( int argc, char *argv[] )
 			printf("    help\n");
 			printf("    sair\n");
 		} else if(!strcmp(cmd,"sair")) {
+			fat_dismount();
 			break;
 		} else {
 			printf("comando desconhecido: %s\n",cmd);
