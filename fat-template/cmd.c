@@ -187,6 +187,11 @@ int cpin( char *name, char *op_path )
 		if(result<=0) break;
 		if(result>0) {
 			actual = fat_write(op_path,buffer,result,offset);
+			if (actual==-32000) {
+				printf("ERRO: Disco Cheio!\n");
+				sucess=0;
+				break;
+			}
 			if(actual<0) {
 				printf("ERRO: fat_write retornou codigo %d\n",actual);
 				sucess=0;

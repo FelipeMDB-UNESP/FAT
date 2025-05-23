@@ -1,0 +1,127 @@
++-------------------------------------------------------+
+|Recursos Base:	    		   Quantidade Atual:	|
+|							|
+|População:	    		   	24.99k		|
+|Dinheiro:	    		   	900k Po		|
+|							|
+|Pessoa      1				13k		|
+|  Alimento  2						|
+|  Pessoa    2						|
+|							|
+|Árvore      10				120		|
+|  Árv. G.   1						|
+|							|
+|Montaria    1				210		|
+|  Feno      2						|
+|  Montaria  2						|
+|							|
+|Alimento    1k				77k		|
+|  Fazenda   1						|
+|  Pessoa    100					|
+|							|
+|Feno	     1k				17k		|
+|  Fazenda   1						|
+|  Pessoa    100					|
+|							|
+|Madeira     50				3k		|
+|  Árvore    1						|
+|  Pessoa    1						|
+|							|
+|Pedra	     1k				12k		|
+|  Mina      1						|
+|  Pessoa    200					|
+|  							|
+|Ferro B.    500			0		|
+|  Mina      1						|
+|  Pessoa    400					|
+|							|
+|Mithril B.  d250			25		|
+|  Mina      1						|
+|  Pessoa    1k						|
+|							|
+|Químico     10				12k		|
+|  Pessoa    1						|
+|							|
++-------------------------------------------------------+
+|Fundição:			  Quantidade Atual:	|
+|							|
+|Ferro       1				0		|
+|  Ferro B.  2						|
+|  Pessoa    1						|
+|							|
+|Mithril     1				0		|
+|  MithrilB. 3 						|
+|  Pessoa    2						|
+|							|
+|Armas       1				0		|
+|  Madeira   1						|
+|  Ferro     2						|
+|							|
+|Armas M.    1				0		|
+|  Mithril   2						|
+|							|
+|Mosquetes   1				0		|
+|  Ferro     1						|
+|  Madeira   2						|
+|  Químico  10						|
+|							|
++-------------------------------------------------------+
+|Construções:			  Quantidade Atual:	|
+|							|
+|Fazenda     1				50		|
+|  Madeira  250						|
+|							|
+|Mina        1				5		|
+|  Madeira  500						|
+|							|
+|Torre Vigia 1				0		|
+|  Madeira  1k						|
+|  Soldado   1						|
+|							|
+|Vilarejo    1				2		|
+|  Madeira  5k						|
+|  Pedra    10k						|
+|  Pessoa   1k						|
+|							|
+|Postos Av.  1				0		|
+|  Pedra    5k						|
+|  Tropas   10k						|
+|							|
+|Muralhas    1				2		|
+|  Soldado 300						|
+|  Pedra    15k						|
+|							|
++-------------------------------------------------------+
+|Tropas:			  Quantidade Atual:	|
+|							|
+|Soldado     1				9.4k		|
+|  Pessoa    1						|
+|  Armas     1						|
+|							|
+|Mensageiro  1				10		|
+|  Pessoa    1						|
+|  Montaria  1						|
+|							|
+|Cavalaria   1				0		|
+|  Soldado   5						|
+|  Montaria  5						|
+|							|
+|Mosqueteiro 1				1.4k		|
+|  Pessoa    1						|
+|  Mosquete  1						|
+|							|
+|Catapultas  1				60		|
+|  Madeira  50						|
+|  Pedra    20						|
+|  Pessoa    3						|
+|							|
+|Balestras   1				50		|
+|  Madeira 100						|
+|  Ferro    20						|
+|  Pessoa    2						|
+|							|
+|Barco       1				3		|
+|  Madeira  1k						|
+|  Ferro   100						|
+|  Soldado 100						|
++-------------------------------------------------------+

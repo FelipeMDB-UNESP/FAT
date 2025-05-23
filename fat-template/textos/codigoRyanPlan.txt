@@ -1,0 +1,81 @@
+#include "plan.h"
+#include "stdio.h"
+#include <unistd.h>
+
+void cleanEnviroment(cleaner* C, enviroment E){
+/*
+    Plano de limpeza para um agente que conhece o ambiente, mas não sabe onde 
+    está a sujeira a ser limpada. Porém, possui um sensor que detecta toda a sala, 
+    um quadrado ao redor de cada vez, aumentando o raio de busca gradativamente.
+*/
+    //Contador de lugares
+    int k = 0;
+    //Para checar direção de movimento
+    bool goUp = true;
+    bool goDown = false;
+
+    bool detectedDirt = false;  
+      
+
+    int biggestSide, distanceSearch;
+    if(E.h > E.w){
+        biggestSide = E.h;
+    }else{
+        biggestSide = E.w;
+    }
+    distanceSearch = 1;
+    bool foundDirt = false;
+
+    int colIndex = 0;
+    int j = colIndex;
+    bool descendingColIndex = false;
+
+    while(distanceSearch < biggestSide / 2){
+        printf("DistanceSearch : %d\n", distanceSearch);
+        foundDirt = false;
+        //Checa se bateria atingiu limite crítico
+        if (C->battery<E.h+E.w){
+            int p = C->whereCleaner->row;
+            int t = C->whereCleaner->col;
+            printf("Voltando pra bateria!");
+            //Retorna para carregar bateria
+            goTarget(C, E, &E.grid[C->whereCharger->row][C->whereCharger->col]);
+            charge(C,E);
+            //Retorna para posição anterior
+            goTarget(C,E,&E.grid[p][t]);
+        }  
+         
+        colIndex = 0;
+        descendingColIndex = false;
+        for (int i = -distanceSearch; i <= distanceSearch; i++){
+            j = colIndex;
+            if (C->whereCleaner->row + i >= 0 && C->whereCleaner->row + i < E.w
+            && C->whereCleaner->col + j >= 0 && C->whereCharger->col + j < E.h){ // Limite das borda
+ 
+                printf("colIndex %d\n", colIndex);
+                printAimingSimulation(*C, E, &E.grid[C->whereCleaner->row + i][C->whereCleaner->col+j]);
+                j = -j;
+                printAimingSimulation(*C, E, &E.grid[C->whereCleaner->row + i][C->whereCleaner->col+j]);
+            }
+            if(descendingColIndex == false && colIndex < distanceSearch){
+                colIndex++;
+                printf("Aumentando largura!");
+            }else if (descendingColIndex && colIndex > 0){
+                colIndex--;
+            }
+            
+            if(colIndex >= distanceSearch){
+                descendingColIndex = true;
+            }     
+        } 
+
+
+        if (foundDirt == true){
+            distanceSearch = 1;
+        } else{
+            distanceSearch++;
+        } 
+        //----------------------------------------------------
+    }
+    printf("\nFIM!");
+}

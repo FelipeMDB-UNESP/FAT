@@ -1,0 +1,97 @@
+Good:			Civis		Tropas
+
+	Sacred Wood:	[8.000]		[4.000]
+
+	  Barcos:	[0]		[3]
+
+	  Muralha:	[0]		[1]
+
+	  Camelos:	[0]		[100]
+
+	  Cavalos:	[0]		[250]
+
+	  Mago:		[0]		[165]
+
+	  Arquimago:	[0]		[1]	(Camurdes)
+
+
+	Forte HellHope:	
+
+	  Mago:		[0]		[25]
+
+	  Arquimago:	[0]		[2]	(Martídia/Yamúdia)
+
+
+	Ferrovia:	[2.000]		[...]
+
+	  Aprendiz:	[0]		[400]
+
+	  Arquimago:	[0]		[1]	(Lórentor)
+
+	  Anões:	[TODOS]		[TODOS]
+
+
+	Eliriand:	[100]		[1.000]
+
+	 Sacred Knight:	[0]		[2.000]
+
+	 Orcs:		[0]		[20.3k]
+
+	 Catapultas:	[0]		[20]
+
+	 Balestras:	[0]		[1]
+
+	 Dragões:	[0]		[3]
+
+
+	Golden Snow:	[0]		[2.700]
+
+	  Mercenários:	[0]		[4.000]
+
+	  Mosqueteiros:	[0]		[1.400]
+
+	  Sacred Knight:[0]		[200]
+
+	  Catapultas:	[0]		[40]
+
+	  Balestras:	[0]		[40]
+
+
+	Irkutsk:	[3.000]		[0]
+
+
+Civil:			0.25x
+
+Esqueleto:		0.5x
+
+Orc Padrão:		0.75x
+
+Soldado Padrão: 	1x
+
+Anão:			1x
+
+Elfo:			1.25x
+
+Elfo Negro:		1.5x
+
+Mosqueteiro:		2x
+
+Horror Elmo:		4x
+
+Sacred Knight:		8x
+
+Aprendiz de Mago:	10x
+
+Cavalaria:		25x
+
+Mago:			150x
+
+Catapultas:		250x
+
+Balestra:		500x
+
+Barco:			1000x
+
+Muralha:		3000x
+
+Dragão:			5000x

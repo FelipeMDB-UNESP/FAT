@@ -58,13 +58,15 @@ int fat_format(){
 	ds_write(DIR, (char*) dir);
 
 	ds_read(SUPER, (char*) &sb);
-	
-	//Limpa FAT
-	unsigned int *empty_fat = calloc(sb.n_fat_blocks * BLOCK_SIZE,sizeof(char));
-	for(int i = 0; i < sb.n_fat_blocks; i++){
-		ds_write(TABLE+i, ((char*) empty_fat) + i * BLOCK_SIZE);
+
+	if (sb.magic != 0){
+		//Limpa FAT
+		unsigned int *empty_fat = calloc(sb.n_fat_blocks * BLOCK_SIZE,sizeof(char));
+		for(int i = 0; i < sb.n_fat_blocks; i++){
+			ds_write(TABLE+i, ((char*) empty_fat) + i * BLOCK_SIZE);
+		}
+		free(empty_fat);
 	}
-	free(empty_fat);
 
 	//Inicializa Superbloco
 	sb.magic = MAGIC_N;
@@ -324,7 +326,7 @@ int fat_write(char *name, const char *buff, int length, int offset) {
                         break;
                     }
                 }
-                if (block == EOFF) return bytes_write; // disco cheio
+                if (block == EOFF) return -32000; // disco cheio
             }
 
             char temp[BLOCK_SIZE];
