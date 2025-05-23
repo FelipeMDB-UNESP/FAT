@@ -146,15 +146,11 @@ int fat_mount(){
 	return -1;
 }
 
+//Criação de um arquivo
 int fat_create(char *name){
-	if(mountState == 0) {
-		return -1;
-	}
-
-	//Verifica se o nome do arquivo é válido
-	if(strlen(name) > MAX_LETTERS) {
-		return -1;
-	}
+    if (mountState == 0 || strlen(name) > MAX_LETTERS) {
+        return -1;
+    }
 
 	//Verifica se o arquivo já existe
 	for(int i = 0; i < N_ITEMS; i++){
@@ -178,6 +174,7 @@ int fat_create(char *name){
 	return 0;
 }
 
+//Deletar um arquivo
 int fat_delete( char *name){
 	if(mountState == 0) {
 		return -1;
@@ -221,15 +218,11 @@ int fat_delete( char *name){
   	return -1;
 }
 
+//Obtém o tamanho do arquivo em bytes
 int fat_getsize( char *name){
-	if(mountState == 0) {
-		return -1;
-	}
-
-	//Verifica se o nome do arquivo é válido
-	if(strlen(name) > MAX_LETTERS) {
-		return -1;
-	}
+    if (mountState == 0 || strlen(name) > MAX_LETTERS) {
+        return -1;
+    }
 
 	//Verifica se o arquivo existe
 	for(int i = 0; i < N_ITEMS; i++){
@@ -243,30 +236,142 @@ int fat_getsize( char *name){
 	return -1;
 }
 
-//Retorna a quantidade de caracteres lidos
-int fat_read( char *name, char *buff, int length, int offset){
-	if(mountState == 0) {
-		return -1;
-	}
+//Leitura de dados de um arquivo
+int fat_read(char *name, char *buff, int length, int offset) {
+    if (mountState == 0 || strlen(name) > MAX_LETTERS) {
+        return -1;
+    }
 
-	//Verifica se o nome do arquivo é válido
-	if(strlen(name) > MAX_LETTERS) {
-		return -1;
-	}
+    for (int i = 0; i < N_ITEMS; i++) {
+		// Verifica se o arquivo existe
+        if (dir[i].used == OK && strcasecmp(dir[i].name, name) == 0) {
+			// Verifica se o offset é válido
+            if (offset > dir[i].length) {
+                return -1;
+            }
 
-	return 0;
+			// Verifica se o tamanho do buffer é válido
+            length = (length > dir[i].length - offset) ? dir[i].length - offset : length;
+
+            unsigned int bloco = dir[i].first;
+            int bytes_read = 0;
+            int block_offset = offset % BLOCK_SIZE;
+
+            // Pula os blocos iniciais por causa  do offset
+            for (int j = 0; j < offset / BLOCK_SIZE && bloco != EOFF && bloco < sb.number_blocks; j++) {
+                bloco = fat[bloco];
+            }
+
+            char temp[BLOCK_SIZE];
+            while (bloco != EOFF && bloco < sb.number_blocks && bytes_read < length) {
+                ds_read(bloco, temp);
+
+                int copy_bytes = BLOCK_SIZE - block_offset;
+                copy_bytes = (copy_bytes > length - bytes_read) ? length - bytes_read : copy_bytes;
+
+                memcpy(buff + bytes_read, temp + block_offset, copy_bytes);
+                bytes_read += copy_bytes;
+                block_offset = 0;
+                bloco = fat[bloco];
+            }
+            return bytes_read;
+        }
+    }
+    return -1;
 }
 
-//Retorna a quantidade de caracteres escritos
-int fat_write( char *name, const char *buff, int length, int offset){
-	if(mountState == 0) {
-		return -1;
-	}
 
-	//Verifica se o nome do arquivo é válido
-	if(strlen(name) > MAX_LETTERS) {
-		return -1;
-	}
+int fat_write(char *name, const char *buff, int length, int offset) {
+    if (mountState == 0 || strlen(name) > MAX_LETTERS || !buff || length <= 0 || offset < 0) {
+        return -1;
+    }
 
-	return 0;
+    for (int i = 0; i < N_ITEMS; i++) {
+        if (dir[i].used == OK && strcasecmp(dir[i].name, name) == 0) {
+            if (offset > dir[i].length) {
+                return -1;
+            }
+
+            // Calcula o tamanho máximo possível para escrita
+            int max_file_size = (sb.number_blocks - 2 - sb.n_fat_blocks) * BLOCK_SIZE; // espaço útil
+            if (offset + length > max_file_size) {
+                length = max_file_size - offset;
+            }
+            if (length <= 0) return 0;
+
+            unsigned int bloco = dir[i].first;
+            unsigned int prev = EOFF;
+            int bytes_write = 0;
+            int block_offset = offset % BLOCK_SIZE;
+            int skip_blocks = offset / BLOCK_SIZE;
+
+            // Pula blocos já existentes até o offset
+            for (int j = 0; j < skip_blocks; j++) {
+                if (bloco == EOFF || bloco >= sb.number_blocks) break;
+                prev = bloco;
+                bloco = fat[bloco];
+            }
+
+            // Se offset aponta para o fim do arquivo, precisamos alocar o primeiro bloco
+            if (bloco == EOFF) {
+                // Aloca novo bloco
+                for (unsigned int k = 2 + sb.n_fat_blocks; k < sb.number_blocks; k++) {
+                    if (fat[k] == FREE) {
+                        fat[k] = EOFF;
+                        if (prev != EOFF) fat[prev] = k;
+                        else dir[i].first = k;
+                        bloco = k;
+                        break;
+                    }
+                }
+                if (bloco == EOFF) return bytes_write; // disco cheio
+            }
+
+            char temp[BLOCK_SIZE];
+            while (bytes_write < length && bloco != EOFF && bloco < sb.number_blocks) {
+                ds_read(bloco, temp);
+
+                int copy_bytes = BLOCK_SIZE - block_offset;
+                if (copy_bytes > length - bytes_write)
+                    copy_bytes = length - bytes_write;
+
+                memcpy(temp + block_offset, buff + bytes_write, copy_bytes);
+                ds_write(bloco, temp);
+                bytes_write += copy_bytes;
+                block_offset = 0;
+
+                // Se ainda falta escrever, avança ou aloca novo bloco
+                if (bytes_write < length) {
+                    if (fat[bloco] == EOFF) {
+                        // Aloca novo bloco
+                        unsigned int novo = EOFF;
+                        for (unsigned int k = 2 + sb.n_fat_blocks; k < sb.number_blocks; k++) {
+                            if (fat[k] == FREE) {
+                                novo = k;
+                                break;
+                            }
+                        }
+                        if (novo == EOFF) break; // disco cheio
+                        fat[bloco] = novo;
+                        fat[novo] = EOFF;
+                    }
+                    bloco = fat[bloco];
+                }
+            }
+
+            // Atualiza o tamanho do arquivo se necessário
+            if (offset + bytes_write > dir[i].length) {
+                dir[i].length = offset + bytes_write;
+            }
+
+            // Atualiza diretório e FAT no disco
+            ds_write(DIR, (char*)dir);
+            for (int j = 0; j < sb.n_fat_blocks; j++) {
+                ds_write(TABLE + j, ((char*)fat) + j * BLOCK_SIZE);
+            }
+
+            return bytes_write;
+        }
+    }
+    return -1;
 }
