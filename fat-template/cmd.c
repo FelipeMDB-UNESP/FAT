@@ -1,3 +1,8 @@
+/*
+Por:
+André Luis Dias Nogueira
+Felipe Melchior de Britto
+*/
 #include "ds.h"
 #include "fat.h"
 #include <errno.h>

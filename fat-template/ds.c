@@ -1,3 +1,8 @@
+/*
+Por:
+André Luis Dias Nogueira
+Felipe Melchior de Britto
+*/
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>

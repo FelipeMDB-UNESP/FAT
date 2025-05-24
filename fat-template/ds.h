@@ -1,3 +1,8 @@
+/*
+Por:
+André Luis Dias Nogueira
+Felipe Melchior de Britto
+*/
 #define BLOCK_SIZE 4096
 
 int  ds_init( const char *filename, int number_blocks );

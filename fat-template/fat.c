@@ -1,3 +1,9 @@
+/*
+Por:
+André Luis Dias Nogueira
+Felipe Melchior de Britto
+*/
+
 #include "fat.h"
 #include "ds.h"
 #include <errno.h>
@@ -7,6 +13,7 @@
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
+
 
 #define SUPER 0
 #define TABLE 2
@@ -388,6 +395,7 @@ int fat_dismount() {
 		return -1;
 	}
 
+	//Escreve tudo no disco e libera o espaço alocado para a FAT
 	ds_write(SUPER, (char*) &sb);
 	ds_write(DIR, (char*)dir);
 	for (int j = 0; j < sb.n_fat_blocks; j++) {
